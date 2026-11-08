@@ -1,0 +1,1 @@
+import{S as t,n}from"./Dih5uh5I.js";import{g as e,E as c,c as l,t as p,k as s,I as i,o as m}from"./C8UsDy87.js";const A=e({__name:"Selo",props:{valor:{},tipo:{}},setup(r){const o=r,a=c(()=>(o.tipo==="voluntario"?t:n)[o.valor]||{rotulo:o.valor||"—",cor:"cinza"});return(_,u)=>(m(),l("span",{class:i(["selo",s(a).cor])},p(s(a).rotulo),3))}});export{A as _};

@@ -1,0 +1,6 @@
+FSI · IC Jardim São Judas — site do sistema
+Versão 1.0.0
+
+- Os arquivos desta pasta são o site pronto (não precisa instalar nada).
+- config.json: guarda só o endereço público da API (Apps Script). Não é senha.
+- codigo-fonte/: código original do site (Nuxt/Vue) e do backend, para futuras alterações.
