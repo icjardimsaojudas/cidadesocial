@@ -1,0 +1,14 @@
+{
+  "name": "fsi-sao-judas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "generate": "NUXT_APP_BASE_URL=./ nuxt generate"
+  },
+  "dependencies": {
+    "nuxt": "3.21.10",
+    "vue": "3.5.13",
+    "vue-router": "4.5.0"
+  }
+}
