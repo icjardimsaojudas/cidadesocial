@@ -32,12 +32,13 @@
           <div class="campo"><label class="obrig">Nome</label><input v-model="doador.nome" type="text" /></div>
           <div class="campo"><label>Tipo</label><select v-model="doador.tipo"><option v-for="(t, k) in TIPOS" :key="k" :value="k">{{ t }}</option></select></div>
           <div class="campo"><label>Pessoa de contato</label><input v-model="doador.contato" type="text" /></div>
-          <div class="campo"><label>Telefone</label><input v-model="doador.telefone" type="tel" /></div>
+          <div class="campo"><label>Telefone</label><input v-model="doador.telefone" v-mascara="'tel'" type="tel" /></div>
           <div class="campo"><label>E-mail</label><input v-model="doador.email" type="email" /></div>
           <div class="campo"><label>GDC</label><input v-model="doador.gdc" type="text" /></div>
         </div>
         <div class="campo"><label>Observações</label><textarea v-model="doador.observacoes" /></div>
-        <button class="btn" :disabled="salvando" @click="salvarDoador">Salvar</button>
+        <div class="row"><button class="btn" :disabled="salvando" @click="salvarDoador">Salvar</button><div class="spacer" />
+          <button v-if="doador.id && usuario?.papel === 'admin'" class="link-btn" style="color:var(--vermelho)" @click="excluirDoador">Excluir doador</button></div>
       </template>
     </Modal>
 
@@ -60,6 +61,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'painel', papeis: ['arrecadacao'] })
 const toast = useToast()
+const { usuario } = useAuth()
 const TIPOS: Record<string, string> = { pessoa: 'Pessoa', gdc: 'GDC', empresa: 'Empresa / patrocinador', igreja: 'Igreja', outro: 'Outro' }
 const lista = ref<any[] | null>(null), produtos = ref<any[]>([]), busca = ref(''), filtroStatus = ref(''), doador = ref<any>(null), comp = ref<any>(null), salvando = ref(false), entrada = ref(false)
 const carregar = async () => { try { [lista.value, produtos.value] = await Promise.all([api('doadores.listar'), api('produtos.listar')]) } catch (e: any) { toast.erro(e.message) } }
@@ -70,5 +72,9 @@ const abrirDoador = (x?: any) => { doador.value = x ? { ...x } : { nome: '', tip
 const abrirComp = (x: any, c?: any) => { comp.value = c ? { ...c, doador_id: x.id } : { doador_id: x.id, produto_id: '', quantidade: 1, periodicidade: 'unica', prazo: '', observacoes: '' } }
 async function salvarDoador() { salvando.value = true; try { await api('doadores.salvar', doador.value); toast.ok('Doador salvo.'); doador.value = null; carregar() } catch (e: any) { toast.erro(e.message) } finally { salvando.value = false } }
 async function salvarComp() { salvando.value = true; try { await api('compromissos.salvar', comp.value); toast.ok('Compromisso salvo.'); comp.value = null; carregar() } catch (e: any) { toast.erro(e.message) } finally { salvando.value = false } }
+async function excluirDoador() {
+  if (!confirm(`Excluir ${doador.value.nome} e os compromissos dele? As doações já recebidas continuam no estoque.`)) return
+  try { await api('doadores.excluir', { id: doador.value.id }); toast.ok('Doador excluído.'); doador.value = null; carregar() } catch (e: any) { toast.erro(e.message) }
+}
 async function excluirComp() { if (!confirm('Excluir este compromisso?')) return; try { await api('compromissos.excluir', { id: comp.value.id }); comp.value = null; carregar() } catch (e: any) { toast.erro(e.message) } }
 </script>

@@ -8,7 +8,7 @@
  * Versão: 1.0.0
  */
 
-var VERSAO = '1.0.4';
+var VERSAO = '1.0.6';
 
 /* =========================================================
  * 1. ESTRUTURA DAS TABELAS (espelha o schema.sql)
@@ -1261,6 +1261,79 @@ function auditoriaListar_(d) {
 }
 
 /* =========================================================
+ * 13b. EXCLUSÕES (somente admin)
+ * ========================================================= */
+function excluirOnde_(nome, filtro) {
+  var linhas = db_(nome).filter(filtro).map(function (x) { return x._row; }).sort(function (a, b) { return b - a; });
+  var sh = aba_(nome);
+  linhas.forEach(function (r) { sh.deleteRow(r); });
+  delete _cache[nome];
+  return linhas.length;
+}
+
+function familiaExcluir_(d, u) {
+  var f = obter_('familias', d.id);
+  if (!f) throw erro_('Família não encontrada.');
+  if (String(d.confirmacao || '').trim().toUpperCase() !== f.codigo) throw erro_('Digite o código ' + f.codigo + ' para confirmar.');
+  db_('documentos').filter(function (x) { return x.familia_id === f.id; }).forEach(function (x) {
+    try { DriveApp.getFileById(x.drive_file_id).setTrashed(true); } catch (e) { }
+  });
+  try {
+    var raiz = DriveApp.getFolderById(PropertiesService.getScriptProperties().getProperty('DRIVE_FOLDER_ID'));
+    var it = raiz.getFoldersByName(f.codigo); while (it.hasNext()) it.next().setTrashed(true);
+  } catch (e) { }
+  var usuarios = db_('usuarios').filter(function (x) { return x.familia_id === f.id; }).map(function (x) { return x.id; });
+  excluirOnde_('sessoes', function (s) { return usuarios.indexOf(s.usuario_id) > -1; });
+  excluirOnde_('usuarios', function (x) { return x.familia_id === f.id; });
+  ['membros', 'triagens', 'visitas', 'documentos', 'historico', 'presencas'].forEach(function (tb) {
+    excluirOnde_(tb, function (x) { return x.familia_id === f.id; });
+  });
+  excluirOnde_('familias', function (x) { return x.id === f.id; });
+  auditar_(u, 'excluir_familia', 'familias', f.id, f.codigo + ' (todos os dados e documentos removidos)');
+  return true;
+}
+
+function usuarioExcluir_(d, u) {
+  var alvo = obter_('usuarios', d.id);
+  if (!alvo) throw erro_('Usuário não encontrado.');
+  if (alvo.id === u.id) throw erro_('Você não pode excluir o seu próprio acesso.');
+  if (alvo.papel === 'familia') throw erro_('Para remover uma família, exclua a inscrição dela na Triagem.');
+  if (alvo.papel === 'admin' && db_('usuarios').filter(function (x) { return x.papel === 'admin' && x.ativo === 'sim'; }).length <= 1) throw erro_('Precisa existir pelo menos um administrador.');
+  excluirOnde_('sessoes', function (s) { return s.usuario_id === alvo.id; });
+  excluirOnde_('usuarios', function (x) { return x.id === alvo.id; });
+  auditar_(u, 'excluir_usuario', 'usuarios', alvo.id, alvo.papel);
+  return true;
+}
+
+function voluntarioExcluir_(d, u) {
+  var v = obter_('voluntarios', d.id);
+  if (!v) throw erro_('Voluntário não encontrado.');
+  excluirOnde_('presencas_voluntarios', function (x) { return x.voluntario_id === v.id; });
+  var acessos = db_('usuarios').filter(function (x) { return x.voluntario_id === v.id; });
+  if (d.excluir_acesso) {
+    acessos.forEach(function (a) { if (a.id !== u.id) { excluirOnde_('sessoes', function (s) { return s.usuario_id === a.id; }); excluirOnde_('usuarios', function (x) { return x.id === a.id; }); } });
+  } else {
+    acessos.forEach(function (a) { atualizar_('usuarios', a.id, { voluntario_id: '' }); });
+  }
+  excluirOnde_('voluntarios', function (x) { return x.id === v.id; });
+  auditar_(u, 'excluir_voluntario', 'voluntarios', v.id, d.excluir_acesso ? 'com acesso' : '');
+  return true;
+}
+
+function doadorExcluir_(d, u) {
+  var x = obter_('doadores', d.id);
+  if (!x) throw erro_('Doador não encontrado.');
+  var comps = db_('compromissos').filter(function (c) { return c.doador_id === x.id; }).map(function (c) { return c.id; });
+  db_('movimentos').filter(function (m) { return m.doador_id === x.id || comps.indexOf(m.compromisso_id) > -1; }).forEach(function (m) {
+    atualizar_('movimentos', m.id, { doador_id: '', compromisso_id: '' });
+  });
+  excluirOnde_('compromissos', function (c) { return c.doador_id === x.id; });
+  excluirOnde_('doadores', function (c) { return c.id === x.id; });
+  auditar_(u, 'excluir_doador', 'doadores', x.id, 'entradas de estoque mantidas sem doador');
+  return true;
+}
+
+/* =========================================================
  * 14. TABELA DE ROTAS E PERMISSÕES
  * ========================================================= */
 var T = 'triagem', A = 'arrecadacao', E = 'estoque', TR = 'treinamento', F = 'familia';
@@ -1321,5 +1394,9 @@ var ROTAS = {
   'relatorio.mensal': { fn: relatorioMensal_, papeis: ['admin'] },
   'config.obter': { fn: configAdmin_, papeis: ['admin'] },
   'config.salvar': { fn: configSalvar_, papeis: ['admin'], escrita: true },
-  'auditoria.listar': { fn: auditoriaListar_, papeis: ['admin'] }
+  'auditoria.listar': { fn: auditoriaListar_, papeis: ['admin'] },
+  'familias.excluir': { fn: familiaExcluir_, papeis: ['admin'], escrita: true },
+  'usuarios.excluir': { fn: usuarioExcluir_, papeis: ['admin'], escrita: true },
+  'voluntarios.excluir': { fn: voluntarioExcluir_, papeis: ['admin'], escrita: true },
+  'doadores.excluir': { fn: doadorExcluir_, papeis: ['admin'], escrita: true }
 };

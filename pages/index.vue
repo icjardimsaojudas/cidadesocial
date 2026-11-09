@@ -33,6 +33,12 @@
         </div>
       </div>
 
+      <div class="vol-cta mt2">
+        <div class="row" style="gap:16px;flex-wrap:nowrap"><span class="ic3"><Icone nome="maos" :tam="28" /></span>
+          <div><b>Quer servir como voluntário?</b><p class="small" style="margin:0">Arrecadação e montagem das cestas, triagem das famílias ou dia da entrega.</p></div></div>
+        <NuxtLink to="/voluntario" class="btn escuro">Quero ser voluntário <Icone nome="seta" :tam="18" /></NuxtLink>
+      </div>
+
       <div class="card mt2 docs">
         <Icone nome="doc" :tam="28" class="laranja" />
         <div><b>Documentos para a triagem</b>
@@ -80,5 +86,9 @@ const SIMBOLO = 'M242.3,334.9 C242.5,334.6 242.7,328.1 242.7,315.2 C242.9,296.4 
 .ic2 { width: 42px; height: 42px; border-radius: 50%; background: var(--laranja); color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
 .docs { display: flex; gap: 14px; align-items: flex-start; border-left: 6px solid var(--ambar); }
 .laranja { color: var(--laranja); }
+.vol-cta { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; background: #FFE9D6; border: 2px dashed var(--laranja); border-radius: var(--raio); padding: 18px 20px; }
+.vol-cta b { font-size: 1.1rem; }
+.ic3 { width: 54px; height: 54px; border-radius: 16px; background: var(--laranja); color: #fff; display: flex; align-items: center; justify-content: center; flex: none; }
+@media (max-width: 560px) { .vol-cta .btn { width: 100%; } }
 @media (max-width: 760px) { .hero-in { grid-template-columns: 1fr; } .hero-sim { display: none; } .hero h1 { font-size: 2rem; } .hero-acoes .btn { width: 100%; } }
 </style>

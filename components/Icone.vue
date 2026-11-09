@@ -28,6 +28,7 @@ const ICONES: Record<string, string> = {
   livro: '<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>',
   pin: '<path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/>',
   mais: '<path d="M12 5v14M5 12h14"/>',
+  lixeira: '<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4h6v3"/>',
   coracao: '<path d="M12 20s-8-4.6-8-10.4A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.6C20 15.4 12 20 12 20z"/>'
 }
 </script>

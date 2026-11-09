@@ -22,7 +22,7 @@
           <td><span class="selo" :class="u.papel === 'admin' ? 'laranja' : 'cinza'">{{ PAPEIS[u.papel] }}</span></td>
           <td><span class="selo" :class="!u.ativo ? 'cinza' : u.trocar_senha ? 'ambar' : 'verde'">{{ !u.ativo ? 'inativo' : u.trocar_senha ? 'aguardando 1º acesso' : 'ativo' }}</span></td>
           <td class="small">{{ dataHoraBR(u.ultimo_login) || '—' }}</td>
-          <td class="row" style="gap:8px;flex-wrap:nowrap"><button class="btn sec peq" @click="abrir(u)">Editar</button><button class="btn sec peq" @click="resetar(u)"><Icone nome="chave" :tam="15" />Senha</button></td>
+          <td class="row" style="gap:8px;flex-wrap:nowrap"><button class="btn sec peq" @click="abrir(u)">Editar</button><button class="btn sec peq" @click="resetar(u)"><Icone nome="chave" :tam="15" />Senha</button><button class="link-btn excluir" title="Excluir usuário" @click="excluirUsuario(u)"><Icone nome="lixeira" :tam="18" /></button></td>
         </tr></tbody>
       </table></div>
     </template>
@@ -43,7 +43,8 @@
           <td><Selo :valor="v.status" tipo="voluntario" /></td>
           <td><span v-if="v.acesso" class="selo" :class="v.acesso.ativo ? 'verde' : 'cinza'">{{ PAPEIS[v.acesso.papel] }}</span><span v-else class="small muted">sem acesso</span></td>
           <td><button v-if="!v.acesso" class="btn peq" @click="darAcesso(v)"><Icone nome="chave" :tam="15" />Dar acesso</button>
-            <button v-else class="btn sec peq" @click="abrir(usuarios?.find(u => u.id === v.acesso.usuario_id))">Editar acesso</button></td>
+            <button v-else class="btn sec peq" @click="abrir(usuarios?.find(u => u.id === v.acesso.usuario_id))">Editar acesso</button>
+            <button class="link-btn excluir" title="Excluir voluntário" @click="excluirVoluntario(v)"><Icone nome="lixeira" :tam="18" /></button></td>
         </tr></tbody>
       </table></div>
     </template>
@@ -120,6 +121,15 @@ async function resetar(u: any) {
   if (!confirm('Gerar nova senha provisória para ' + u.nome + '?')) return
   try { senha.value = { email: u.email, senha: (await api('usuarios.resetarSenha', { id: u.id })).senha_temporaria }; carregar() } catch (e: any) { toast.erro(e.message) }
 }
+async function excluirUsuario(u: any) {
+  if (!confirm(`Excluir o acesso de ${u.nome} (${u.email})? A pessoa não conseguirá mais entrar.`)) return
+  try { await api('usuarios.excluir', { id: u.id }); toast.ok('Usuário excluído.'); carregar() } catch (e: any) { toast.erro(e.message) }
+}
+async function excluirVoluntario(v: any) {
+  if (!confirm(`Excluir a inscrição de voluntário de ${v.nome}?`)) return
+  const excluir_acesso = v.acesso ? confirm('Excluir também o acesso dessa pessoa ao sistema? (OK = sim, Cancelar = manter o acesso)') : false
+  try { await api('voluntarios.excluir', { id: v.id, excluir_acesso }); toast.ok('Voluntário excluído.'); carregar() } catch (e: any) { toast.erro(e.message) }
+}
 async function copiar() {
   const txt = `Olá! Seu acesso ao sistema do FSI São Judas:\nEndereço: ${siteUrl.value}\nLogin: ${senha.value.email}\nSenha provisória: ${senha.value.senha}\nNo primeiro acesso, crie sua senha pessoal.`
   try { await navigator.clipboard.writeText(txt); toast.ok('Mensagem copiada.') } catch { prompt('Copie:', txt) }
@@ -127,6 +137,7 @@ async function copiar() {
 </script>
 <style scoped>
 .abas button { display: inline-flex; align-items: center; gap: 6px; }
+.excluir { color: var(--vermelho); margin-left: 4px; }
 .cred { display: grid; gap: 10px; background: var(--creme); border-radius: 14px; padding: 16px; }
 .cred div { display: flex; flex-direction: column; }
 .cred b { font-size: 1.05rem; word-break: break-all; }

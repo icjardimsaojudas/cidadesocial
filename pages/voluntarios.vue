@@ -42,12 +42,13 @@
           <div class="campo"><label>Data da integração</label><input v-model="form.integracao_data" type="date" /></div>
           <div class="campo"><label>Frente</label><select v-model="form.frente"><option v-for="(t, k) in FRENTES" :key="k" :value="k">{{ t }}</option></select></div>
           <div class="campo"><label>GDC</label><input v-model="form.gdc" type="text" /></div>
-          <div class="campo"><label>Telefone</label><input v-model="form.telefone" type="tel" /></div>
+          <div class="campo"><label>Telefone</label><input v-model="form.telefone" v-mascara="'tel'" type="tel" /></div>
           <div class="campo"><label>E-mail</label><input v-model="form.email" type="email" /></div>
         </div>
         <div class="campo"><label>Observações</label><textarea v-model="form.observacoes" /></div>
         <div class="row"><button class="btn" :disabled="salvando" @click="salvar">Salvar</button>
-          <a class="btn sec" :href="'https://wa.me/55' + soDigitos(form.telefone)" target="_blank" rel="noopener">WhatsApp</a></div>
+          <a class="btn sec" :href="'https://wa.me/55' + soDigitos(form.telefone)" target="_blank" rel="noopener">WhatsApp</a>
+          <div class="spacer" /><button v-if="usuario?.papel === 'admin'" class="link-btn" style="color:var(--vermelho)" @click="excluir">Excluir inscrição</button></div>
       </template>
     </Modal>
   </div>
@@ -55,6 +56,7 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'painel', papeis: ['treinamento'] })
 const toast = useToast()
+const { usuario } = useAuth()
 const base = useRuntimeConfig().app.baseURL
 const ABAS: Record<string, string> = { inscrito: 'Novos', integracao: 'Em integração', ativo: 'Ativos', inativo: 'Inativos', todos: 'Todos' }
 const lista = ref<any[] | null>(null), filtro = ref('inscrito'), frente = ref(''), busca = ref(''), form = ref<any>(null), salvando = ref(false)
@@ -66,6 +68,10 @@ function editar(v: any) { form.value = { ...v } }
 async function salvar() {
   salvando.value = true
   try { await api('voluntarios.atualizar', form.value); toast.ok('Voluntário atualizado.'); form.value = null; carregar() } catch (e: any) { toast.erro(e.message) } finally { salvando.value = false }
+}
+async function excluir() {
+  if (!confirm(`Excluir a inscrição de voluntário de ${form.value.nome}?`)) return
+  try { await api('voluntarios.excluir', { id: form.value.id }); toast.ok('Voluntário excluído.'); form.value = null; carregar() } catch (e: any) { toast.erro(e.message) }
 }
 function exportar() {
   baixarCSV('voluntarios.csv', [['Nome', 'Telefone', 'E-mail', 'Frente', 'GDC', 'Profissão', 'Habilidades', 'Status', 'Integração', 'Presenças'],

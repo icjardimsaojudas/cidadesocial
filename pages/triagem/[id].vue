@@ -195,6 +195,11 @@
           <div class="card" v-else-if="d.familia.data_saida">
             <h2>Encerramento</h2><p>{{ dataBR(d.familia.data_saida) }} · {{ d.familia.motivo_saida }}</p>
           </div>
+          <div class="card zona-perigo" v-if="admin">
+            <h2>Excluir inscrição</h2>
+            <p class="small">Apaga a família, membros, entrevista, visitas, presenças, histórico, acesso e os documentos do Drive. Use para inscrições duplicadas, de teste ou a pedido da família (LGPD). Não pode ser desfeito.</p>
+            <button class="btn perigo" @click="excluirFamilia"><Icone nome="lixeira" :tam="16" />Excluir inscrição {{ d.familia.codigo }}</button>
+          </div>
           <div class="card">
             <h2>Acesso da família</h2>
             <p class="small muted">A família entra com o CPF do responsável. Se esqueceu a senha, gere uma provisória.</p>
@@ -233,6 +238,8 @@
 definePageMeta({ layout: 'painel', papeis: ['triagem'] })
 const toast = useToast()
 const route = useRoute()
+const { usuario } = useAuth()
+const admin = computed(() => usuario.value?.papel === 'admin')
 const id = String(route.params.id)
 const ABAS: Record<string, string> = { resumo: 'Resumo', cadastro: 'Cadastro', entrevista: 'Entrevista', cras: 'CRAS e rede', documentos: 'Documentos', visitas: 'Visitas', parecer: 'Parecer', historico: 'Histórico' }
 const TRABALHO = ['Empregado(a) com carteira', 'Trabalho informal / bico', 'Autônomo(a)', 'Desempregado(a)', 'Aposentado(a) / pensionista', 'Do lar', 'Estudante']
@@ -288,6 +295,11 @@ function encerrar() {
   if (!confirm('Confirma o encerramento da participação?')) return
   rodar(() => api('familias.encerrar', { familia_id: id, motivo: enc.motivo, detalhe: enc.detalhe, tipo: enc.motivo === 'conclusao' ? 'concluida' : 'desligada' }), 'Registrado.')
 }
+async function excluirFamilia() {
+  const c = prompt(`Excluir a inscrição ${d.value.familia.codigo} e TODOS os dados e documentos? Isso não pode ser desfeito.\n\nDigite ${d.value.familia.codigo} para confirmar:`)
+  if (c === null) return
+  try { await api('familias.excluir', { id, confirmacao: c }); toast.ok('Inscrição excluída.'); navigateTo('/triagem') } catch (e: any) { toast.erro(e.message) }
+}
 async function resetarSenha() {
   if (!confirm('Gerar uma nova senha provisória para a família?')) return
   try { senhaTemp.value = (await api('familias.resetarSenha', { familia_id: id })).senha_temporaria } catch (e: any) { toast.erro(e.message) }
@@ -308,6 +320,7 @@ async function salvarVisita() { if (await rodar(() => api('visitas.salvar', { fa
 
 <style scoped>
 .doc { padding: 8px 0; border-bottom: 1px solid var(--linha); }
+.zona-perigo { border: 2px solid #F3C4C4; background: #FFF8F8; }
 .visita { border: 2px solid var(--linha); border-radius: 14px; padding: 12px 14px; margin-top: 10px; }
 td input { min-width: 110px; padding: 7px 8px; }
 </style>

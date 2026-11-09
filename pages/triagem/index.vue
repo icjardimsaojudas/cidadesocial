@@ -12,7 +12,7 @@
     <div v-else-if="!filtradas.length" class="vazio card">Nenhuma família aqui.</div>
     <div v-else class="card tabela-wrap">
       <table>
-        <thead><tr><th>Código</th><th>Responsável</th><th>Status</th><th>Pessoas</th><th v-if="pode('triagem')">Renda</th><th v-if="pode('triagem')">CRAS</th><th>Presenças</th><th>Inscrição</th></tr></thead>
+        <thead><tr><th>Código</th><th>Responsável</th><th>Status</th><th>Pessoas</th><th v-if="pode('triagem')">Renda</th><th v-if="pode('triagem')">CRAS</th><th>Presenças</th><th>Inscrição</th><th v-if="admin" /></tr></thead>
         <tbody>
           <tr v-for="f in filtradas" :key="f.id" class="clicavel" @click="pode('triagem') && navigateTo('/triagem/' + f.id)">
             <td><b>{{ f.codigo }}</b></td>
@@ -23,6 +23,7 @@
             <td v-if="pode('triagem')">{{ { sim: 'Sim', nao: 'Não', nao_sei: 'Não sabe' }[f.atendida_cras as string] || '—' }}</td>
             <td><span :class="{ 'selo vermelho': f.faltas_sem_justificativa >= limite }">{{ f.presencas }} / {{ f.presencas + f.faltas }}</span></td>
             <td class="small">{{ dataBR(f.created_at) }}</td>
+            <td v-if="admin"><button class="link-btn excluir" title="Excluir inscrição" @click.stop="excluir(f)"><Icone nome="lixeira" :tam="18" /></button></td>
           </tr>
         </tbody>
       </table>
@@ -31,7 +32,8 @@
 </template>
 <script setup lang="ts">
 definePageMeta({ layout: 'painel', papeis: ['triagem'] })
-const { pode } = useAuth()
+const { pode, usuario } = useAuth()
+const admin = computed(() => usuario.value?.papel === 'admin')
 const toast = useToast()
 const base = useRuntimeConfig().app.baseURL
 const FILTROS: Record<string, string> = { novas: 'Novas', em_triagem: 'Em triagem', ativa: 'Ativas', lista_espera: 'Espera', encerradas: 'Encerradas', todas: 'Todas' }
@@ -42,6 +44,11 @@ const filtradas = computed(() => {
   const b = busca.value.toLowerCase()
   return (lista.value || []).filter(f => passa(f, filtro.value) && (!b || (f.responsavel_nome + ' ' + f.codigo + ' ' + f.bairro).toLowerCase().includes(b)))
 })
+async function excluir(f: any) {
+  const c = prompt(`Excluir a inscrição ${f.codigo} (${f.responsavel_nome}) e TODOS os dados e documentos dela? Isso não pode ser desfeito.\n\nDigite ${f.codigo} para confirmar:`)
+  if (c === null) return
+  try { await api('familias.excluir', { id: f.id, confirmacao: c }); lista.value = (lista.value || []).filter(x => x.id !== f.id); toast.ok('Inscrição excluída.') } catch (e: any) { toast.erro(e.message) }
+}
 onMounted(async () => {
   try {
     const [l, c] = await Promise.all([api('familias.listar'), api('config.publica')])
@@ -50,3 +57,7 @@ onMounted(async () => {
   } catch (e: any) { toast.erro(e.message) }
 })
 </script>
+
+<style scoped>
+.excluir { color: var(--vermelho); }
+</style>

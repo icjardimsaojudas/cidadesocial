@@ -31,5 +31,5 @@ const base = useRuntimeConfig().app.baseURL
 .pub-main { flex: 1; padding: 0 0 50px; }
 .pub-rodape { background: var(--tinta); color: #fff; padding: 22px 0; text-align: center; }
 .pub-rodape .muted { color: #cbb9ab; }
-@media (max-width: 560px) { .pub-logo { height: 36px; } .topo-link span { display: none; } .topo-link { background: var(--creme); border-radius: 50%; width: 38px; height: 38px; justify-content: center; } }
+@media (max-width: 560px) { .pub-logo { height: 34px; } .topo-acoes { gap: 8px; } .topo-link { background: #FFF0E3; color: var(--laranja-escuro); border-radius: 999px; padding: 7px 11px; font-size: .8rem; } .topo-acoes .btn { padding: 7px 11px; font-size: .8rem; } }
 </style>
