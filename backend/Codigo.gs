@@ -8,7 +8,7 @@
  * Versão: 1.0.0
  */
 
-var VERSAO = '1.0.6';
+var VERSAO = '1.0.7';
 
 /* =========================================================
  * 1. ESTRUTURA DAS TABELAS (espelha o schema.sql)
@@ -499,7 +499,6 @@ function configPublica_() {
 }
 
 function inscreverFamilia_(d) {
-  if (d.site) throw erro_('Inscrição inválida.'); // campo-isca anti-robô
   var c = config_();
   if (c.inscricoes_familias_abertas === 'nao') throw erro_('As inscrições estão fechadas no momento.');
   var r = d.responsavel || {};
@@ -541,7 +540,6 @@ function inscreverFamilia_(d) {
 }
 
 function inscreverVoluntario_(d) {
-  if (d.site) throw erro_('Inscrição inválida.');
   var c = config_();
   if (c.inscricoes_voluntarios_abertas === 'nao') throw erro_('As inscrições de voluntários estão fechadas no momento.');
   if (!txt_(d.nome) || txt_(d.nome).split(' ').length < 2) throw erro_('Informe seu nome completo.');

@@ -11,14 +11,13 @@
       <p class="muted">Família Saudável Integral · IC Jardim São Judas</p>
       <div v-if="cfg && !cfg.inscricoes_voluntarios_abertas" class="alerta vermelho">As inscrições de voluntários estão fechadas no momento.</div>
       <form class="card stack" @submit.prevent="enviar" novalidate>
-        <input v-model="f.site" class="oculto" tabindex="-1" autocomplete="off" aria-hidden="true" />
         <div>
           <h2>Seus dados</h2>
           <div class="campo"><label class="obrig">Nome completo</label><input v-model="f.nome" type="text" autocomplete="name" /></div>
           <div class="grid g2">
-            <div class="campo"><label class="obrig">Telefone / WhatsApp</label><input :value="f.telefone" @input="f.telefone = mascaraTel(($event.target as any).value)" type="tel" /></div>
+            <div class="campo"><label class="obrig">Telefone / WhatsApp</label><input v-model="f.telefone" v-mascara="'tel'" type="tel" /></div>
             <div class="campo"><label>E-mail</label><input v-model="f.email" type="email" /></div>
-            <div class="campo"><label>CPF</label><input :value="f.cpf" @input="f.cpf = mascaraCpf(($event.target as any).value)" type="tel" /><div class="ajuda">Usado no termo de voluntariado.</div></div>
+            <div class="campo"><label>CPF</label><input v-model="f.cpf" v-mascara="'cpf'" type="tel" /><div class="ajuda">Usado no termo de voluntariado.</div></div>
             <div class="campo"><label>Data de nascimento</label><input v-model="f.nascimento" type="date" /></div>
             <div class="campo"><label>GDC que participa</label><input v-model="f.gdc" type="text" /></div>
             <div class="campo"><label>Líder do GDC</label><input v-model="f.lider_gdc" type="text" /></div>
@@ -45,7 +44,7 @@
           <label class="check"><input type="checkbox" v-model="f.trabalha_criancas" />Tenho interesse em servir com crianças e adolescentes.</label>
           <div class="grid g2 mt">
             <div class="campo"><label>Contato de emergência (nome)</label><input v-model="f.emergencia_nome" type="text" /></div>
-            <div class="campo"><label>Telefone de emergência</label><input :value="f.emergencia_telefone" @input="f.emergencia_telefone = mascaraTel(($event.target as any).value)" type="tel" /></div>
+            <div class="campo"><label>Telefone de emergência</label><input v-model="f.emergencia_telefone" v-mascara="'tel'" type="tel" /></div>
           </div>
         </div>
         <div v-if="cfg">
@@ -70,7 +69,7 @@ const DESC: Record<string, string> = {
 }
 const DISP: Record<string, string> = { sabado_manha: 'Sábado de manhã', sabado_tarde: 'Sábado à tarde', semana_dia: 'Dias de semana (dia)', semana_noite: 'Dias de semana (noite)', remoto: 'À distância' }
 const cfg = ref<any>(null), enviando = ref(false), feito = ref(false)
-const f = reactive<any>({ site: '', nome: '', telefone: '', email: '', cpf: '', nascimento: '', gdc: '', lider_gdc: '', frente: '', profissao: '', habilidades: '',
+const f = reactive<any>({ nome: '', telefone: '', email: '', cpf: '', nascimento: '', gdc: '', lider_gdc: '', frente: '', profissao: '', habilidades: '',
   disponibilidade: [], trabalha_criancas: false, emergencia_nome: '', emergencia_telefone: '', aceite_termo: false, aceite_lgpd: false, aceite_imagem: false })
 onMounted(async () => { try { cfg.value = await api('config.publica') } catch (e: any) { toast.erro(e.message) } })
 async function enviar() {

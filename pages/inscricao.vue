@@ -19,7 +19,6 @@
       </div>
 
       <form class="card" @submit.prevent="avancar" novalidate>
-        <input v-model="f.site" class="oculto" tabindex="-1" autocomplete="off" aria-hidden="true" />
 
         <!-- 1 Responsável -->
         <div v-show="passo === 0">
@@ -130,7 +129,7 @@ const COMO = ['Igreja / GDC', 'CRAS', 'Indicação de amigo ou vizinho', 'Redes 
 const cfg = ref<any>(null)
 const passo = ref(0), enviando = ref(false), feito = ref(''), senha2 = ref('')
 const f = reactive<any>({
-  site: '', responsavel: { nome: '', cpf: '', nascimento: '', telefone: '', email: '', estado_civil: '', escolaridade: '' },
+  responsavel: { nome: '', cpf: '', nascimento: '', telefone: '', email: '', estado_civil: '', escolaridade: '' },
   endereco: { cep: '', rua: '', numero: '', complemento: '', bairro: '', cidade: 'São José dos Campos', referencia: '' },
   membros: [], renda_familiar: '', atendida_cras: '', beneficiosLista: [], como_conheceu: '', indicado_por: '', motivo: '',
   aceite_participacao: false, aceite_lgpd: false, aceite_imagem: false, senha: ''
